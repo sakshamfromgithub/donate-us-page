@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Donate</title>
+
+    <!-- QR library -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+    <style>
+        :root {
+            --bg: #0b0b10;
+            --card: #12121b;
+            --text: #ffffff;
+            --muted: #b9b9c7;
+            --maroon: #7a0f26;
+            --maroon2: #b3123a;
+            --line: rgba(255, 255, 255, 0.10);
+            --shadow: 0 26px 70px rgba(0, 0, 0, .55);
+            --radius: 18px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            font-family: Arial, sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(900px 380px at 10% 10%, rgba(179, 18, 58, 0.18), transparent 55%),
+                radial-gradient(850px 360px at 90% 20%, rgba(122, 15, 38, 0.22), transparent 60%),
+                radial-gradient(900px 380px at 50% 110%, rgba(79, 195, 247, 0.10), transparent 55%),
+                var(--bg);
+        }
+
+        .card {
+            width: min(760px, 100%);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--line);
+            box-shadow: var(--shadow);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        .head {
+            padding: 18px 18px 14px;
+            border-bottom: 1px solid var(--line);
+            background:
+                radial-gradient(650px 180px at 20% 0%, rgba(179, 18, 58, 0.22), transparent 55%),
+                rgba(255, 255, 255, 0.02);
+        }
+
+        .title {
+            margin: 0;
+            font-size: 20px;
+            letter-spacing: 0.2px;
+        }
+
+        .sub {
+            margin: 8px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.45;
+        }
+
+        .body {
+            padding: 18px;
+        }
+
+        .view {
+            display: none;
+            animation: fadeIn .25s ease both;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            color: var(--muted);
+            margin: 0 0 8px;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        @media (max-width: 520px) {
+            .row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input {
+            width: 100%;
+            border: 1px solid var(--line);
+            background: rgba(0, 0, 0, 0.25);
+            color: var(--text);
+            padding: 12px 12px;
+            border-radius: 12px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .input:focus {
+            border-color: rgba(179, 18, 58, 0.75);
+            box-shadow: 0 0 0 4px rgba(179, 18, 58, 0.18);
+        }
+
+        .btns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .btn {
+            border: none;
+            cursor: pointer;
+            padding: 12px 14px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 14px;
+            color: white;
+            background: linear-gradient(135deg, var(--maroon), var(--maroon2));
+            box-shadow: 0 16px 40px rgba(179, 18, 58, 0.22);
+            transition: transform .15s ease, filter .15s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.03);
+        }
+
+        .btn:active {
+            transform: translateY(0px) scale(0.99);
+        }
+
+        .btn.secondary {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--line);
+            box-shadow: none;
+            font-weight: 600;
+        }
+
+        .toast {
+            margin-top: 12px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.88);
+            font-size: 13px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .toast.show {
+            display: block;
+        }
+
+        /* QR screen */
+        .qrGrid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            align-items: stretch;
+        }
+
+        @media (max-width: 860px) {
+            .qrGrid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .qrBox {
+            padding: 18px;
+            min-height: 280px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background:
+                radial-gradient(650px 240px at 50% 0%, rgba(255, 255, 255, 0.05), transparent 60%),
+                rgba(0, 0, 0, 0.22);
+            border: 1px dashed rgba(255, 255, 255, 0.16);
+            border-radius: 16px;
+        }
+
+        #qrcode {
+            padding: 12px;
+            border-radius: 14px;
+            background: white;
+        }
+
+        .panel {
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.18);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+        }
+
+        .meta {
+            margin: 0 0 10px;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .strong {
+            color: var(--text);
+            font-weight: 700;
+        }
+
+        /* Thanks overlay */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.72);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            z-index: 999;
+        }
+
+        .overlay.show {
+            display: flex;
+        }
+
+        .thanksCard {
+            width: min(680px, 100%);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background:
+                radial-gradient(800px 300px at 20% 0%, rgba(179, 18, 58, 0.35), transparent 60%),
+                radial-gradient(750px 300px at 90% 20%, rgba(122, 15, 38, 0.28), transparent 55%),
+                rgba(18, 18, 27, 0.92);
+            box-shadow: 0 34px 90px rgba(0, 0, 0, 0.65);
+            overflow: hidden;
+            transform: translateY(14px) scale(0.98);
+            animation: popIn .35s ease forwards;
+            position: relative;
+        }
+
+        @keyframes popIn {
+            to {
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .thanksTop {
+            padding: 22px 22px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+        }
+
+        .thanksTitle {
+            margin: 0;
+            font-size: 26px;
+            letter-spacing: 0.2px;
+        }
+
+        .thanksSub {
+            margin: 10px 0 0;
+            color: rgba(255, 255, 255, 0.82);
+            line-height: 1.55;
+            font-size: 14px;
+        }
+
+        .thanksBody {
+            padding: 18px 22px 22px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chip {
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            padding: 10px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            color: rgba(255, 255, 255, 0.88);
+            font-size: 13px;
+        }
+
+        /* confetti dots */
+        .confetti {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .dot {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            top: -20px;
+            animation: fall 1.6s ease-in infinite;
+            opacity: 0.9;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-10px) rotate(0deg);
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 0.95;
+            }
+
+            100% {
+                transform: translateY(110vh) rotate(220deg);
+                opacity: 0.0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <div class="head">
+            <h1 class="title">Donate</h1>
+            <p class="sub">Enter your name and amount. Generate QR, scan and pay. Then tap “I’ve Paid”.</p>
+        </div>
+
+        <div class="body">
+            <!-- VIEW 1: Form -->
+            <div id="viewForm" class="view active">
+                <div class="row">
+                    <div>
+                        <label>Your Name</label>
+                        <input id="name" class="input" placeholder="e.g., Saksham" autocomplete="name" />
+                    </div>
+                    <div>
+                        <label>Amount (INR)</label>
+                        <input id="amount" class="input" placeholder="e.g., 51" inputmode="numeric" />
+                    </div>
+                </div>
+
+                <div class="btns">
+                    <button class="btn" id="genBtn">Generate QR</button>
+                    <button class="btn secondary" id="clearBtn">Clear</button>
+                </div>
+
+                <div id="toast" class="toast"></div>
+
+                <div style="margin-top:12px; color:var(--muted); font-size:12px; line-height:1.55;">
+                    Payment note:
+                    <span class="strong">QR scan needs another phone</span> or use
+                    <span class="strong">“Open UPI App”</span> on mobile.
+                </div>
+            </div>
+
+            <!-- VIEW 2: QR -->
+            <div id="viewQR" class="view">
+                <div class="qrGrid">
+                    <div class="qrBox">
+                        <div id="qrcode"></div>
+                    </div>
+
+                    <div class="panel">
+                        <p class="meta">Donor: <span class="strong" id="metaName">---</span></p>
+                        <p class="meta">Amount: <span class="strong" id="metaAmount">---</span></p>
+                        <p class="meta">
+                            Tip:
+                            If scanning is not possible, tap <span class="strong">Open UPI App</span> on your phone.
+                        </p>
+
+                        <div class="btns">
+                            <a id="openUpi" class="btn" href="#"
+                                style="text-decoration:none; display:inline-block;">Open UPI App</a>
+                            <button class="btn secondary" id="paidBtn">I’ve Paid</button>
+                            <button class="btn secondary" id="backBtn">Back</button>
+                        </div>
+
+                        <div style="margin-top:10px; color:var(--muted); font-size:12px; line-height:1.55;">
+                            Important:
+                            This page cannot auto-verify payment on its own. “I’ve Paid” shows the thank you animation.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thanks Overlay -->
+    <div id="overlay" class="overlay" aria-hidden="true">
+        <div class="thanksCard">
+            <div class="confetti" id="confetti"></div>
+
+            <div class="thanksTop">
+                <h3 class="thanksTitle" id="thanksTitle">Thanks!</h3>
+                <p class="thanksSub" id="thanksSub">Your support means a lot.</p>
+            </div>
+
+            <div class="thanksBody">
+                <div class="chip">✅ Donation marked as paid</div>
+                <div class="chip">💖 Thank you</div>
+                <button class="btn" id="closeThanks">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Replace these values with your real details
+        const UPI_VPA = "Q021815184@ybl";     // Example: saksham@paytm
+        const PAYEE_NAME = "Saksham Study Point";
+
+        const viewForm = document.getElementById("viewForm");
+        const viewQR = document.getElementById("viewQR");
+
+        const nameEl = document.getElementById("name");
+        const amtEl = document.getElementById("amount");
+
+        const genBtn = document.getElementById("genBtn");
+        const clearBtn = document.getElementById("clearBtn");
+
+        const metaName = document.getElementById("metaName");
+        const metaAmount = document.getElementById("metaAmount");
+
+        const qrEl = document.getElementById("qrcode");
+        const openUpi = document.getElementById("openUpi");
+        const paidBtn = document.getElementById("paidBtn");
+        const backBtn = document.getElementById("backBtn");
+
+        const toast = document.getElementById("toast");
+
+        const overlay = document.getElementById("overlay");
+        const thanksTitle = document.getElementById("thanksTitle");
+        const thanksSub = document.getElementById("thanksSub");
+        const closeThanks = document.getElementById("closeThanks");
+        const confetti = document.getElementById("confetti");
+
+        let lastName = "";
+        let lastAmount = 0;
+        let lastUpiLink = "";
+
+        function showToast(msg) {
+            toast.textContent = msg;
+            toast.classList.add("show");
+            setTimeout(() => toast.classList.remove("show"), 3200);
+        }
+
+        function cleanNumber(v) {
+            const only = String(v).replace(/[^\d]/g, "");
+            return only ? Number(only) : 0;
+        }
+
+        function buildUpiLink(payerName, amount) {
+            // UPI URI format
+            const pa = encodeURIComponent(UPI_VPA);
+            const pn = encodeURIComponent(PAYEE_NAME);
+            const tn = encodeURIComponent(`Donation from ${payerName}`);
+            const am = encodeURIComponent(String(amount));
+            return `upi://pay?pa=${pa}&pn=${pn}&tn=${tn}&am=${am}&cu=INR`;
+        }
+
+        function clearQR() {
+            qrEl.innerHTML = "";
+        }
+
+        function makeQR(text) {
+            clearQR();
+            new QRCode(qrEl, {
+                text,
+                width: 210,
+                height: 210,
+                correctLevel: QRCode.CorrectLevel.M
+            });
+        }
+
+        function setView(which) {
+            if (which === "form") {
+                viewQR.classList.remove("active");
+                viewForm.classList.add("active");
+            } else {
+                viewForm.classList.remove("active");
+                viewQR.classList.add("active");
+            }
+        }
+
+        function makeConfetti() {
+            confetti.innerHTML = "";
+            const dots = 42;
+            for (let i = 0; i < dots; i++) {
+                const d = document.createElement("div");
+                d.className = "dot";
+                d.style.left = (Math.random() * 100) + "vw";
+                const size = 6 + Math.random() * 10;
+                d.style.width = size + "px";
+                d.style.height = size + "px";
+                d.style.animationDelay = (Math.random() * 0.8).toFixed(2) + "s";
+                d.style.animationDuration = (1.2 + Math.random() * 1.2).toFixed(2) + "s";
+
+                const r = 180 + Math.floor(Math.random() * 75);
+                const g = 80 + Math.floor(Math.random() * 120);
+                const b = 120 + Math.floor(Math.random() * 120);
+                d.style.background = `rgba(${r},${g},${b},0.95)`;
+
+                confetti.appendChild(d);
+            }
+        }
+
+        function openThanks() {
+            thanksTitle.textContent = `Thanks ${lastName} 💖`;
+            thanksSub.textContent = `for ₹${lastAmount} donation.`;
+            makeConfetti();
+            overlay.classList.add("show");
+            overlay.setAttribute("aria-hidden", "false");
+        }
+
+        function closeThanksOverlay() {
+            overlay.classList.remove("show");
+            overlay.setAttribute("aria-hidden", "true");
+        }
+
+        genBtn.addEventListener("click", () => {
+            const n = (nameEl.value || "").trim();
+            const a = cleanNumber(amtEl.value);
+
+            if (!n) {
+                showToast("Please enter your name.");
+                return;
+            }
+            if (!a || a < 1) {
+                showToast("Please enter a valid amount (minimum 1).");
+                return;
+            }
+            if (!UPI_VPA || UPI_VPA.includes("your-upi-id")) {
+                showToast("UPI_VPA is not set. Please add your real UPI ID in the code.");
+                return;
+            }
+
+            lastName = n;
+            lastAmount = a;
+            lastUpiLink = buildUpiLink(n, a);
+
+            // Build QR + show QR screen
+            makeQR(lastUpiLink);
+            metaName.textContent = n;
+            metaAmount.textContent = `₹${a}`;
+
+            // Set deep-link for mobile
+            openUpi.href = lastUpiLink;
+
+            setView("qr");
+        });
+
+        clearBtn.addEventListener("click", () => {
+            nameEl.value = "";
+            amtEl.value = "";
+            toast.classList.remove("show");
+        });
+
+        backBtn.addEventListener("click", () => {
+            setView("form");
+        });
+
+        paidBtn.addEventListener("click", () => {
+            if (!lastName || !lastAmount) {
+                showToast("Please generate the QR first.");
+                return;
+            }
+            openThanks();
+        });
+
+        closeThanks.addEventListener("click", closeThanksOverlay);
+
+        overlay.addEventListener("click", (e) => {
+            if (e.target === overlay) closeThanksOverlay();
+        });
+    </script>
+</body>
+
+</html>
